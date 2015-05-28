@@ -24,6 +24,7 @@ BTerm      = BFactor { "AND" BFactor }
 BFactor    = "TRUE" | "FALSE" | "NOT" "(" BExpr ")" 
 	   | NExpr ( "==" | "!=" | "<" | ">" | "<=" | ">=" )  NExpr 
 
+
 Comments start with "#" with scope until the newline
 
 Numbers are real numbers
