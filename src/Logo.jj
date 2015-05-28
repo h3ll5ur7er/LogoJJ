@@ -49,6 +49,8 @@ PARSER_END(Logo)
 
 // skip separators
 SKIP : { <" " | "\t" | "\n" | "\r"> }
+// skip comment lines
+SKIP : { <"#"(~["\n"])*>}
 
 // Constants, pre-defined, operators etc.
 TOKEN: { <ADD: "+">   | <SUB: "-">  | <MUL: "*"> | <DIV: "/"> }
@@ -81,57 +83,141 @@ TOKEN: { <PARAMETER: <PARSEP> <IDENTIFIER> > // removes parameter separator
 //          { matchedToken.image=image.substring(1,image.length()); }
 }
 
+// eigene Tokens
+
 void start() throws IOException:
 { Token t; }
 {
   // logo programs start with LOGO followed by an identifier
   <LOGO> t = <IDENTIFIER>
   // Creation of the output files
-//   {
-//     // Create the HTML file for the applet
-//     htmlFile = new File(t.image.toLowerCase() + ".html");
-//     pw = new PrintWriter(new FileOutputStream(htmlFile));
-//     pw.println("<html>");
-//     pw.println("  <body>");
-//     pw.println("  <applet code='" + t.image.toLowerCase() +
-//                ".class'width=600 height=600></applet>");
-//     pw.println("  </html>");
-//     pw.println("</body>");
-//     pw.close();
-//     //Create the Java file and the class
-//     javaFile = new File(t.image.toLowerCase() + ".java");
-//     pw = new PrintWriter(new FileOutputStream(javaFile));
-//     pw.println("import java.awt.Graphics;\n");
-//     pw.println("public class " + t.image.toLowerCase() +
-//                " extends java.applet.Applet {\n" );
-//     numIndent++;
-//     indent();
-//     pw.println("private LogoPrimitives logo;\n");
-//     pw.flush();
-//   }
-//  ( subroutine() )*
-//  // Open the necessary method "paint" of the applet
-//   {
-//     indent(); numIndent++;
-//     pw.println("public void paint(Graphics g) {");
-//     indent();
-//     pw.println("logo = new LogoPrimitives(this);");
-//     pw.println();
-//   }
-//  ( statement() )*
+   {
+     // Create the HTML file for the applet
+     htmlFile = new File(t.image.toLowerCase() + ".html");
+     pw = new PrintWriter(new FileOutputStream(htmlFile));
+     pw.println("<html>");
+     pw.println("  <body>");
+     pw.println("  <applet code='" + t.image.toLowerCase() +
+                ".class'width=600 height=600></applet>");
+     pw.println("  </html>");
+     pw.println("</body>");
+     pw.close();
+     //Create the Java file and the class
+     javaFile = new File(t.image.toLowerCase() + ".java");
+     pw = new PrintWriter(new FileOutputStream(javaFile));
+     pw.println("import java.awt.Graphics;\n");
+     pw.println("public class " + t.image.toLowerCase() +
+                " extends java.applet.Applet {\n" );
+     numIndent++;
+     indent();
+     pw.println("private LogoPrimitives logo;\n");
+     pw.flush();
+  }
+  ( subroutine() )*
+  // Open the necessary method "paint" of the applet
+   {
+		indent(); numIndent++;
+		pw.println("public void paint(Graphics g) {");
+		indent();
+		pw.println("logo = new LogoPrimitives(this);");
+		pw.println();
+	}
+  ( statement() )*
   // close the method "paint"
-//   {
-//     numIndent--;
-//     indent();
-//     pw.println("}");
-//   }
+   {
+     numIndent--;
+     indent();
+    pw.println("}");
+  }
   // close the class
   <END>
-//   { numIndent--; indent();
-//     pw.println("}");
-//     pw.flush(); pw.close(); }
-//   }
+  { numIndent--; indent();
+    pw.println("}");
+     pw.flush(); pw.close(); 
+   }
 }
 
-
 // ADD THE REST OF THE JAVACC RULES WITH THE JAVA CODE
+
+void subroutine() throws IOException:
+{Token t;}
+	{
+		<SUBROUTINE> <IDENTIFIER> (<PARAMETER>)* (statement())* <END>
+	}
+
+void statement() throws IOException:
+{Token t;}
+	{
+		<CLEARSCREEN>
+		{
+			
+		}
+		| <PENDOWN>
+		{
+			
+		}
+		| <PENUP>
+		{
+			
+		}
+		| <HIDETURTLE>
+		{
+			
+		}
+		| <SHOWTURTLE>
+		{
+			
+		}
+		| (forward()) 
+		| (rightTurn())
+		| (repeat())
+		| <IDENTIFIER> nExpr()
+		
+	}
+	
+	void forward() throws IOException:
+	{Token t;}
+		{
+			<FORWARD> nExpr() 
+			{
+				//put java output here
+			}
+		}
+		
+		void rightTurn() throws IOException:
+	{Token t;}
+		{
+			<RIGHTTURN> nExpr()
+			{
+				//put java output here
+			}
+		}
+		
+		void repeat() throws IOException:
+	{Token t;}
+		{
+			<REPEAT> nExpr() <LBRA> (statement())* <RBRA>
+			{
+				//put java output here
+			}
+		}
+		
+		
+void nExpr() throws IOException:
+	{Token t;}
+		{
+			nTerm() ((<ADD> | <SUB>) nTerm())*
+		}
+		
+	void nTerm() throws IOException:
+	{Token t;}
+		{
+			nFactor() ((<MUL> | <DIV>) nFactor())*
+		}
+		
+	void nFactor() throws IOException:
+	{Token t;}
+		{
+			<SUB> (<NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>)
+			| <NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>
+		}	
