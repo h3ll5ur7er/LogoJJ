@@ -169,9 +169,14 @@ void statement() throws IOException:
 			
 		}
 		| (forward()) 
+		| (backward())
+		| (leftTurn())
 		| (rightTurn())
+		| (<WAIT> nExpr())
 		| (repeat())
-		| <IDENTIFIER> nExpr()
+		| (ifStatement())
+		| (ifElseStatement())
+		| <IDENTIFIER> (nExpr())*
 		
 	}
 	
@@ -179,6 +184,24 @@ void statement() throws IOException:
 	{Token t;}
 		{
 			<FORWARD> nExpr() 
+			{
+				//put java output here
+			}
+		}
+		
+	void backward() throws IOException:
+	{Token t;}
+		{
+			<BACKWARD> nExpr() 
+			{
+				//put java output here
+			}
+		}
+		
+		void leftTurn() throws IOException:
+	{Token t;}
+		{
+			<LEFTTURN> nExpr()
 			{
 				//put java output here
 			}
@@ -197,6 +220,24 @@ void statement() throws IOException:
 	{Token t;}
 		{
 			<REPEAT> nExpr() <LBRA> (statement())* <RBRA>
+			{
+				//put java output here
+			}
+		}
+		
+		void ifStatement() throws IOException:
+	{Token t;}
+		{
+			<IF> bExpr() <LBRA> (statement())* <RBRA>
+			{
+				//put java output here
+			}
+		}
+		
+		void ifElseStatement() throws IOException:
+	{Token t;}
+		{
+			<IFELSE> bExpr() <LBRA> (statement())* <RBRA> <LBRA> (statement())* <RBRA>
 			{
 				//put java output here
 			}
@@ -221,3 +262,23 @@ void nExpr() throws IOException:
 			<SUB> (<NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>)
 			| <NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>
 		}	
+		
+	void bExpr() throws IOException:
+	{Token t;}
+		{
+			bTerm() (<OR> bTerm())*
+		}
+	void bTerm() throws IOException:
+	{Token t;}
+		{
+			bFactor() (<AND> bFactor())*
+		}	
+	void bFactor() throws IOException:
+	{Token t;}
+		{
+			<TRUE>
+			| <FALSE>
+			| <NOT> <LPAR> bExpr() <RPAR>
+			| nExpr() (<EQ> | <NE> | <LT> | <GT> | <LE> | <GE>) nExpr()
+		}	
+	
