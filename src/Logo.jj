@@ -181,11 +181,11 @@ void statement() throws IOException:
 	}
 	
 	void forward() throws IOException:
-	{Token t;}
+	{double number;}
 		{
-			<FORWARD> nExpr() 
+			<FORWARD> number = nExpr() 
 			{
-				//put java output here
+				pw.println("logo.fd(" + number + ");");
 			}
 		}
 		
@@ -208,11 +208,11 @@ void statement() throws IOException:
 		}
 		
 		void rightTurn() throws IOException:
-	{Token t;}
+	{double number;}
 		{
-			<RIGHTTURN> nExpr()
+			<RIGHTTURN> number = nExpr()
 			{
-				//put java output here
+				pw.println("logo.rt(" + number + ");");
 			}
 		}
 		
@@ -244,24 +244,39 @@ void statement() throws IOException:
 		}
 		
 		
-void nExpr() throws IOException:
-	{Token t;}
+double nExpr() throws IOException:
+	{double x; double y;}
 		{
-			nTerm() ((<ADD> | <SUB>) nTerm())*
+			x = nTerm()
+			(	<ADD> y = nTerm() 		{x+=y;}
+				| <SUB> y = nTerm() 	{x-=y;}
+				)*
+				{return x;}
 		}
 		
-	void nTerm() throws IOException:
-	{Token t;}
+	double nTerm() throws IOException:
+	{double x; double y;}
 		{
-			nFactor() ((<MUL> | <DIV>) nFactor())*
+			x = nFactor() 
+			(	<MUL> y = nFactor()		{x *= y;}
+				| <DIV> y = nFactor()	{x /= y;}
+			)*
+			{return x;}
 		}
 		
-	void nFactor() throws IOException:
-	{Token t;}
+	double nFactor() throws IOException:
+	{Token t; double value;}
 		{
 			<SUB> (<NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>)
-			| <NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>
-		}	
+			| value = number() {return value;}
+			| <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>
+		}
+
+	double number() throws IOException:
+	{Token t; double value;}
+		{
+			t = <NUM> {return Double.parseDouble(t.image);}
+		}
 		
 	void bExpr() throws IOException:
 	{Token t;}
