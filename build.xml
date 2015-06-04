@@ -26,7 +26,7 @@
    <property name="filename" value="demo" />
 
    <!-- java 7.0 (1.7) by default -->
-   <property name="source.option" value="1.7" />
+   <property name="source.option" value="1.8" />
 
    <!-- source directory, where the JavaCC source file is -->
    <property name="src.dir" value="src" />

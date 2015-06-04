@@ -1,0 +1,508 @@
+// $Author: beo1 $
+// $Id: Logo.jj 1354 2012-12-05 14:28:28Z beo1 $
+//
+// Parser and translateor of a subset of Logo into Java
+
+options {
+   FORCE_LA_CHECK = true;
+//   DEBUG_PARSER = true;
+//   DEBUG_TOKEN_MANAGER = true;
+}
+
+PARSER_BEGIN(Logo)
+package ch.m02.comet.afl.model;
+
+import java.lang.*;
+import java.io.*;
+import java.util.*;
+
+public class Logo {
+
+  private File javaFile, htmlFile;   // output files
+  private PrintWriter pw;            // printwriter used for every output
+  private int numIndent = 0;         // size of indentation
+  private int forCounter = 0;		 // for loop with i, j, k, ...
+  
+  private String functionString = "";
+  
+  // to pretty-print the translation
+  // uses numIndent and pw defined as static variables in LogoParser
+  // writes in pw the numIndent times the indent string
+  public void indent() {
+    for (int i=0; i<numIndent; i++) { pw.print("\t"); }
+  }
+  
+  public String createIndentionString() {
+  	String indentation = "";
+  	for (int i=0; i<numIndent; i++) {
+  		indentation += "\t";
+  	}
+  	return indentation;
+  }
+
+  /**
+   * Main method that reads the source file(s) ".logo" and translates it into 
+   * two files: ".java" ".html".
+   * <p>
+   * First parameter (<code>args[0]</code>): The file for logo sources.
+   * If it is a directory all files in the directory will be translated.
+   * <p>
+   * Second (optional) parameter (<code>args[1]</code>): Output directory for
+   * the generated files. If ommited the current execution directory will be
+   * used.
+   */
+  public static void main(String args[]) throws Exception {
+    if (args.length < 1) {
+      throw new IllegalArgumentException("Need fileName/sourceDirectory as primary argument");
+    }
+    String inputFile = args[0];
+    System.out.println("Got input file: " + inputFile);
+	
+    String outputPath = "";
+    if (args.length >= 2) {
+      outputPath = args[1];
+      System.out.println("Got output path: " + outputPath);
+    }
+	
+    File input = new File(inputFile);
+    List<File> logoFiles = new ArrayList<File>();
+    if (input.isDirectory()) {
+      File[] inputFiles = input.listFiles(new FilenameFilter() {
+        public boolean accept(File dir, String filename) {
+          return filename.endsWith(".logo");
+        }
+      });
+      logoFiles.addAll(Arrays.asList(inputFiles));
+    } else {
+      logoFiles.add(input);
+    }
+    
+    for (File f : logoFiles) {
+      parseFile(f, outputPath);
+    }
+  }
+  
+  public static void parseFile(File logoFile, String outputPath) throws Exception {
+	BufferedReader in = null;
+	try {
+      in = new BufferedReader(new FileReader(logoFile));
+      Logo parser = new Logo(in);
+      System.out.println("Processing " + logoFile.getName());
+      parser.start(outputPath);
+      System.out.println("Processing DONE");
+    } catch (ParseException x) {
+      System.out.println("Syntaxtic Error");
+      throw x;
+    } catch (TokenMgrError x) {
+      System.out.println("Lexical Error");
+      throw x;
+    } finally {
+	  if (in != null) {
+        try {
+          in.close();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+}
+PARSER_END(Logo)
+
+// skip separators
+SKIP : { <" " | "\t" | "\n" | "\r"> }
+
+// Constants, pre-defined, operators etc.
+TOKEN: { <ADD: "+">   | <SUB: "-">  | <MUL: "*"> | <DIV: "/"> }
+TOKEN: { <LPAR: "(">  | <RPAR: ")"> | <#PARSEP: ":"> }
+TOKEN: { <LBRA: "[">  | <RBRA: "]"> }
+TOKEN: { <EQ: "==">   | <NE: "!=">  }
+TOKEN: { <LT: "<">    | <GT: ">">   | <LE: "<="> | <GE: ">="> }
+TOKEN: { <AND: "AND"> | <OR: "OR"> }
+TOKEN: { <TRUE: "TRUE"> | <FALSE: "FALSE"> | <NOT: "NOT"> }
+// REPCOUNT is a pre-defined identifier rather than a keyword
+TOKEN: { <REPCOUNT: "REPCOUNT"> }
+// Keywords
+TOKEN: {
+  <CLEARSCREEN: "CS"> |
+  <PENDOWN: "PD">     | <PENUP: "PU">      |
+  <FORWARD: "FD">     | <BACKWARD: "BK">   |
+  <LEFTTURN: "LT">    | <RIGHTTURN: "RT">  |
+  <HIDETURTLE: "HT">  | <SHOWTURTLE: "ST"> |
+  <WAIT: "WAIT">      | <REPEAT: "REPEAT"> |
+  <IF: "IF">          | <IFELSE: "IFELSE"> |
+  <SUBROUTINE: "TO">  |
+  <LOGO: "LOGO">      | <END: "END">
+}
+// Numerical values, identifiers, and parameters
+TOKEN: { <#DIGIT:  ["0"-"9"]> }
+TOKEN: { <#LETTER: ["A"-"Z"]> }
+TOKEN: { <NUM: (<DIGIT>)+ | (<DIGIT>)+ "." (<DIGIT>)+ > }
+TOKEN: { <IDENTIFIER: <LETTER> ( <LETTER> | <DIGIT> )* > }
+TOKEN: { <PARAMETER: <PARSEP> <IDENTIFIER> > // removes parameter separator
+//          { matchedToken.image=image.substring(1,image.length()); }
+}
+
+SPECIAL_TOKEN : {
+    <SINGLE_LINE_COMMENT: "#"(~["\n","\r"])* ("\n"|"\r"|"\r\n")? > } 
+
+void start(String outputPath) throws IOException: 
+{ 
+	Token t; 
+	String s; 
+	String res = "";
+	List<String> functions = new ArrayList<String>();
+} 
+{
+  // logo programs start with LOGO followed by an identifier
+  <LOGO> 
+  t = <IDENTIFIER> {
+    
+    // Determine class name
+    String className = t.image.substring(0, 1).toUpperCase() + t.image.substring(1).toLowerCase();
+    String packagePath = "ch" + File.separator + "m02" + File.separator + "comet" + File.separator + "afl" + File.separator + "parser";
+
+    // Creation of the output files
+    
+    // Create the HTML file for the applet
+    htmlFile = new File(outputPath + File.separator + packagePath + File.separator + t.image.toLowerCase() + ".html");
+    if (!htmlFile.exists()) {
+        htmlFile.getParentFile().mkdirs();
+        htmlFile.createNewFile();
+    }
+    pw = new PrintWriter(new FileOutputStream(htmlFile));
+    pw.println("<html>");
+    pw.println("  <body>");
+    pw.println("  <applet code='" + className + "Applet" +
+               ".class' width='600' height='600'></applet>");
+    pw.println("  </body>");
+    pw.println("</html>");
+    pw.flush();
+	 
+    //Create the Java file and the class
+    javaFile = new File(outputPath + File.separator + packagePath + File.separator + className + ".java");
+    if (!javaFile.exists()) {
+      javaFile.getParentFile().mkdirs();
+      javaFile.createNewFile();
+    }
+    pw = new PrintWriter(new FileOutputStream(javaFile));
+    pw.println("package ch.m02.comet.afl.parser;");
+    pw.println();
+    pw.println("import java.awt.Graphics;");
+    pw.println("import ch.m02.comet.afl.parser.logo.LogoPrimitives;");
+    pw.println();
+    
+    pw.println("public class " + className + " extends java.applet.Applet {\n" );
+    numIndent++;
+    indent();
+    pw.println("private LogoPrimitives logo;\n");
+    pw.flush();
+    
+    indent();
+    pw.println("// This method is mandatory, but can be empty (i.e., have no actual code).");
+   	
+   	indent();
+   	pw.println("public void init() {}\n");
+   	
+   	indent();
+    pw.println("// This method is mandatory, but can be empty (i.e., have no actual code).");
+   	
+   	indent();
+    pw.println("public void stop() {}\n");
+    
+    
+    indent();
+    // Open the necessary method "paint" of the applet
+    pw.println("public void paint(Graphics g) {");
+    numIndent++;
+    indent();
+    pw.println("logo = new LogoPrimitives(this);");
+    
+	pw.println();
+  }
+  (s = subroutine()
+  	{ 
+	  functions.add(createIndentionString() + s); 
+  	}
+  )*
+  (s = statement()
+  	{ res = res + createIndentionString() + s; })*
+  { pw.println(res); }
+  {
+	pw.println();
+    
+    // close the method "paint"
+    numIndent--;
+    indent();
+    pw.println("}");
+    pw.println();
+    
+    for (String function : functions)
+    	pw.println(function);					// print the functions
+    
+    // close the class
+    numIndent--;
+    indent();
+    pw.println("}");
+    pw.flush();
+    pw.close(); 
+  }
+  <END>
+}
+
+String subroutine():
+{
+	Token t;
+	String s;
+	String res = "";
+}
+{
+	( <SUBROUTINE> 
+	t = <IDENTIFIER>
+	{ res = "private void " + t.image.toLowerCase() + "("; }
+	( s = getParameter()
+		{ res = res + "double " + s + ", "; } )*
+	{
+		res = res.substring(0, res.length() - 2);
+		res = res + ") {\n";
+	}
+	( s = statement()
+		{ res = res + s; } )*
+	{ res = res + "}\n"; }
+	<END>
+	
+	)
+	{ return res; }
+}
+
+
+
+String statement():
+{	
+	String b;
+	String n;
+	Token t;
+	String res = "";
+}
+{
+	( <CLEARSCREEN>
+	{ res = "logo.cs();\n"; }
+	
+	|<PENDOWN>
+	{ res = "logo.pd();\n"; }
+	
+	|<PENUP>
+	{ res = "logo.pu();\n"; }
+	
+	|<FORWARD>
+	n = nexpr()
+	{ res = "logo.fd(" + n + ");\n"; }
+	
+	|<BACKWARD>
+	n = nexpr()
+	{ res = "logo.bk(" + n + ");\n"; }
+	
+	|<LEFTTURN>
+	n = nexpr()
+	{ res = "logo.lt(" + n + ");\n"; }
+	
+	|<RIGHTTURN>
+	n = nexpr()
+	{ res = "logo.rt(" + n + ");\n"; }
+	
+	|<HIDETURTLE>
+	{ res = "logo.ht();\n"; }
+	
+	|<SHOWTURTLE>
+	{ res = "logo.st();\n"; }
+	
+	|<WAIT>
+	n = nexpr()
+	{ res = "logo.wait(" + n + ");\n"; }
+	
+	|<REPEAT>
+	{ forCounter++; }
+	n = nexpr()
+	{ numIndent++; char c = (char)(forCounter + 104) ; res = "for(int " + c + " = 1 ; " + c + " <= " + n + " ; " + c + "++) {\n"; }
+	<LBRA> ( n = statement()
+		{ res = res + createIndentionString() +  n; } )* <RBRA>
+	{ numIndent--; res = res + createIndentionString() + "}\n"; }
+	{ forCounter--; }
+	
+	|<IF>
+	b = bexpr()
+	{ res = "if (" + b + "){\n"; }
+	<LBRA> ( n = statement()
+		{ res = res + n; } )* <RBRA>
+	{ res = res + "}\n"; }
+	
+	|<IFELSE>
+	b = bexpr()
+	{ res = "if (" + b + "){\n"; }
+	<LBRA> ( n = statement()
+		{ res = res + n; } )* <RBRA>
+	{ res = res + "}else{\n"; }
+	<LBRA> ( n = statement()
+		{ res = res + n; } )* <RBRA>
+	{ res = res + "}\n"; }
+	
+	| t = <IDENTIFIER>
+	{ res = t.image.toLowerCase() + "("; }
+	(n = nexpr()
+	{ res = res + n + ", "; }
+	)*
+	{ 
+		res = res.substring(0, res.length() - 2);
+		res = res + ");\n"; }
+	)
+	
+	{ return res; }
+}
+
+String nexpr():
+{
+	String n;
+	String res = "";
+}
+{
+	res = nterm()
+	( <ADD> 
+		n = nterm()
+		{ res = res + " + " + n; }
+		| <SUB> 
+		n = nterm()
+		{ res = res + " - " + n; }
+	)*
+	{ return res; }
+}
+
+String nterm():
+{
+	String n;
+	String res = "";
+}
+{
+	res = nfactor()
+	( <MUL> 
+		n = nfactor()
+		{ res = res + " * " + n; }
+		| <DIV> 
+		n = nfactor()
+		{ res = res + " / " + n; }
+	)*
+	{ return res; }
+}
+
+String nfactor():
+{
+	String n;
+	String res = "";
+}
+{
+	( <SUB> (res = getNumber()
+			{ res = "-" + res; }
+			| <REPCOUNT>
+			{ res = res + "" + (char)(forCounter + 104); }
+			| n = getParameter() 
+			{ res = res + n; }
+			| (<LPAR> 
+				{ res = res + "("; }
+				n = nexpr()
+				{ res = res + n; } 
+				<RPAR> 
+				{ res = res + ")"; }
+				) ) )
+	|(		(res = getNumber()
+			| <REPCOUNT>
+			{ res = res + "" + (char)(forCounter + 104); }
+			| n = getParameter()
+			{ res = res + n; } 
+			| (<LPAR>
+				{ res = res + "("; } 
+				n = nexpr()
+				{ res = res + n; } 
+				<RPAR>
+				{ res = res + ")"; } 
+				) ) )
+				
+	{ return res; }
+}
+
+String bexpr():
+{
+	String b;
+	String res = "";
+}
+{
+	res = bterm() 
+	( <OR> 
+		b = bterm() 
+		{ res = res + " || " + b; }
+	)*
+	{ return res; }
+}
+
+String bterm():
+{
+	String b;
+	String res = "";
+}
+{
+	res = bfactor()
+	( <AND> 
+		b = bfactor()
+		{ res = res + " && " + b; }
+	)*
+	{ return res; }
+}
+
+String bfactor():
+{
+	String b;
+	String res = "";
+}
+{
+	<TRUE>
+	{ res = "TRUE"; } 
+	| <FALSE> 
+	{ res = "FALSE"; }
+	| (<NOT> <LPAR> b = bexpr() <RPAR>) 
+	{ res = "!(" + b + ")"; }
+	| b = nexpr()
+		{ res = res + b; } 
+		( <EQ> 
+		{ res = res + " == "; }
+		| <NE>
+		{ res = res + " != "; } 
+		| <LT> 
+		{ res = res + " < "; }
+		| <GT> 
+		{ res = res + " > "; }
+		| <LE> 
+		{ res = res + " <= "; }
+		| <GE> 
+		{ res = res + " >= "; }
+	) b = nexpr()
+	{ res = res + b; 
+	  return res; }
+}
+
+String getNumber() throws NumberFormatException:
+{
+	Token t;
+}
+{
+	t = <NUM>
+	{ return t.image; }
+}
+
+String getParameter():
+{
+	Token t;
+	String res;
+}
+{
+	t = <PARAMETER>
+	{ res = t.image; 
+	  return res.substring(1, res.length()).toLowerCase(); }
+}

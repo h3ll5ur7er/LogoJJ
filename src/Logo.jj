@@ -15,35 +15,61 @@ import java.lang.*;
 import java.io.*;
 import java.util.*;
 
-public class Logo {
-
-  static private File javaFile, htmlFile;   // output files
-  static private PrintWriter pw;            // printwriter used for every output
-  static private int numIndent = 0;         // size of indentation
-
-  // to pretty-print the translation
-  // uses numIndent and pw defined as static variables in LogoParser
-  // writes in pw the numIndent times the indent string
-  public static void indent() {
-    for (int i=0; i<numIndent; i++) { pw.print("   "); }
-  }
-
-  // Main method that reads the source file ".logo" and translates it
-  // into two files: ".java" ".html"
-  public static void main(String args[]) throws ParseException,
-                                                TokenMgrError,
-                                                IOException
-  {
-    // reads the source file ".logo" (first argument of command line)
-    BufferedReader in = new BufferedReader(new FileReader(args[0]));
-    Logo parser = new Logo(in);
-    try {
-      parser.start();
-      System.out.println("DONE");
+public class Logo
+{
+    static private File javaFile, htmlFile;   // output files
+    static private PrintWriter pw;            // printwriter used for every output
+    static private int numIndent = 0;         // size of indentation
+    static private Stack<Integer> repStack = new Stack<Integer>();
+    static private Hashtable<String, Double> variables = new Hashtable<String, Double>();
+    static private Hashtable<String, ArrayList<String>> subroutineParameters = new Hashtable<String, ArrayList<String>>();
+    // to pretty-print the translation
+    // uses numIndent and pw defined as static variables in LogoParser
+    // writes in pw the numIndent times the indent string
+    public static void indent() {
+      for (int i=0; i<numIndent; i++) { pw.print("   "); }
     }
-    catch (ParseException x) { System.out.println("Syntaxtic Error"); throw x; }
-    catch (TokenMgrError x)  { System.out.println("Lexical Error"); throw x; }
-  }
+
+    // Main method that reads the source file ".logo" and translates it
+    // into two files: ".java" ".html"
+    public static void main(String args[]) throws ParseException,
+                                                  TokenMgrError,
+                                                  IOException
+    {
+      // reads the source file ".logo" (first argument of command line)
+      BufferedReader in = new BufferedReader(new FileReader(args[0]));
+      Logo parser = new Logo(in);
+      try {
+        parser.start();
+        System.out.println("DONE");
+      }
+      catch (ParseException x) { System.out.println("Syntaxtic Error"); throw x; }
+      catch (TokenMgrError x)  { System.out.println("Lexical Error"); throw x; }
+    }
+    private static String toString(double d)
+    {
+        return ""+d;
+    }
+    private static String paramImpl(ArrayList<Double> d)
+    {
+        if(d.size() == 0) return "";
+        String s = "";
+        for(double v : d)
+        {
+            s+=v+",";
+        }
+        return s.substring(0,s.length()-1);
+    }
+    private static String paramDef(ArrayList<String> s)
+    {
+        if(s.size() == 0) return "";
+        String o = "double ";
+        for(String v : s)
+        {
+            o+=v+",double ";
+        }
+        return o.substring(0,o.length()-8);
+    }
 }
 PARSER_END(Logo)
 
@@ -88,212 +114,356 @@ TOKEN: { <PARAMETER: <PARSEP> <IDENTIFIER> > // removes parameter separator
 void start() throws IOException:
 { Token t; }
 {
-  // logo programs start with LOGO followed by an identifier
-  <LOGO> t = <IDENTIFIER>
-  // Creation of the output files
-   {
-     // Create the HTML file for the applet
-     htmlFile = new File(t.image.toLowerCase() + ".html");
-     pw = new PrintWriter(new FileOutputStream(htmlFile));
-     pw.println("<html>");
-     pw.println("  <body>");
-     pw.println("  <applet code='" + t.image.toLowerCase() +
-                ".class'width=600 height=600></applet>");
-     pw.println("  </html>");
-     pw.println("</body>");
-     pw.close();
-     //Create the Java file and the class
-     javaFile = new File(t.image.toLowerCase() + ".java");
-     pw = new PrintWriter(new FileOutputStream(javaFile));
-     pw.println("import java.awt.Graphics;\n");
-     pw.println("public class " + t.image.toLowerCase() +
-                " extends java.applet.Applet {\n" );
-     numIndent++;
-     indent();
-     pw.println("private LogoPrimitives logo;\n");
-     pw.flush();
-  }
-  ( subroutine() )*
-  // Open the necessary method "paint" of the applet
-   {
-		indent(); numIndent++;
-		pw.println("public void paint(Graphics g) {");
-		indent();
-		pw.println("logo = new LogoPrimitives(this);");
-		pw.println();
-	}
-  ( statement() )*
-  // close the method "paint"
-   {
-     numIndent--;
-     indent();
-    pw.println("}");
-  }
-  // close the class
-  <END>
-  { numIndent--; indent();
-    pw.println("}");
-     pw.flush(); pw.close(); 
-   }
+    // logo programs start with LOGO followed by an identifier
+    <LOGO> t = <IDENTIFIER>
+    // Creation of the output files
+    {
+        // Create the HTML file for the applet
+        htmlFile = new File(t.image.toLowerCase() + ".html");
+        pw = new PrintWriter(new FileOutputStream(htmlFile));
+        pw.println("<html>");
+        pw.println("  <body>");
+        pw.println("  <applet code='" + t.image.toLowerCase() +
+                   ".class'width=600 height=600></applet>");
+        pw.println("  </html>");
+        pw.println("</body>");
+        pw.close();
+        //Create the Java file and the class
+        javaFile = new File(t.image.toLowerCase() + ".java");
+        pw = new PrintWriter(new FileOutputStream(javaFile));
+        pw.println("import java.awt.Graphics;\n");
+        pw.println("public class " + t.image.toLowerCase() +
+                   " extends java.applet.Applet {\n" );
+        numIndent++;
+        indent();
+        pw.println("private LogoPrimitives logo;\n");
+        pw.flush();
+     }
+    ( subroutine() )*
+    // Open the necessary method "paint" of the applet
+    {
+        indent(); numIndent++;
+        pw.println("public void paint(Graphics g) {");
+        indent();
+        pw.println("logo = new LogoPrimitives(this);");
+        pw.println();
+    }
+    ( statement() )*
+    // close the method "paint"
+    {
+        numIndent--;
+        indent();
+        pw.println("}");
+    }
+    // close the class
+    <END>
+    { numIndent--; indent();
+      pw.println("}");
+       pw.flush(); pw.close(); 
+    }
 }
 
 // ADD THE REST OF THE JAVACC RULES WITH THE JAVA CODE
 
 void subroutine() throws IOException:
-{Token t;}
-	{
-		<SUBROUTINE> <IDENTIFIER> (<PARAMETER>)* (statement())* <END>
-	}
+{Token t;String methodName; ArrayList<String> paramNames = new ArrayList<String>();}
+{
+    <SUBROUTINE> t = <IDENTIFIER>{methodName = t.image;} (t = <PARAMETER>{paramNames.add(t.image.substring(1));})*
+    {
+        indent();
+        numIndent++;
+        pw.println("private void "+methodName+"("+paramDef(paramNames).toLowerCase()+"){");
+        subroutineParameters.put(methodName, new ArrayList<String>());
+        for(int index = 0; index < paramNames.size();index++)
+        {
+            variables.put(paramNames.get(index),0.0);
+            subroutineParameters.get(methodName).add(paramNames.get(index));
+            indent();
+            pw.println("double "+paramNames.get(index)+" = 0;");
+        }
+    }
+    (statement())*
+    <END>
+    {
+        numIndent--;
+        indent();
+        pw.println("}");
+    }
+}
 
 void statement() throws IOException:
-{Token t;}
-	{
-		<CLEARSCREEN>
-		{
-			
-		}
-		| <PENDOWN>
-		{
-			
-		}
-		| <PENUP>
-		{
-			
-		}
-		| <HIDETURTLE>
-		{
-			
-		}
-		| <SHOWTURTLE>
-		{
-			
-		}
-		| (forward()) 
-		| (backward())
-		| (leftTurn())
-		| (rightTurn())
-		| (<WAIT> nExpr())
-		| (repeat())
-		| (ifStatement())
-		| (ifElseStatement())
-		| <IDENTIFIER> (nExpr())*
-		
-	}
+{Token t; String id = ""; double number; ArrayList<Double> params = new ArrayList<Double>();}
+{
+    <CLEARSCREEN>
+    {
+        indent();
+        pw.println("logo.cs();");
+    }
+    | <PENDOWN>
+    {
+        indent();
+        pw.println("logo.pd();");
+    }
+    | <PENUP>
+    {
+        indent();
+        pw.println("logo.pu();");
+    }
+    | <HIDETURTLE>
+    {
+        indent();
+        pw.println("logo.ht();");
+    }
+    | <SHOWTURTLE>
+    {
+        indent();
+        pw.println("logo.st();");
+    }
+    | (<FORWARD> number = nExpr() 
+    {
+        indent();
+        pw.println("logo.fd(" + number + ");");
+    })
+    | (<BACKWARD> number = nExpr() 
+    {
+        indent();
+        pw.println("logo.bk(" + number + ");");
+    })
+    | (<LEFTTURN> number = nExpr()
+    {
+        indent();
+        pw.println("logo.lt(" + number + ");");
+    })
+    | (<RIGHTTURN> number = nExpr()
+    {
+        indent();
+        pw.println("logo.rt(" + number + ");");
+    })
+    | (<WAIT> number = nExpr()
+    {
+        indent();
+        pw.println("logo.wait(" + number + ");");
+    })
+    | (repeat())
+    | (ifStatement())
+    | (ifElseStatement())
+    | (t = <IDENTIFIER>{id = t.image;} (number = nExpr(){params.add(number);})*
+    {
+        for(int dex = 0; dex<params.size();dex++)
+        {
+            variables.put(subroutineParameters.get(id).get(dex), params.get(dex));
+        }
+        indent();
+        pw.println(id+"("+paramImpl(params)+");");
+    })
+}
 	
-	void forward() throws IOException:
-	{double number;}
-		{
-			<FORWARD> number = nExpr() 
-			{
-				pw.println("logo.fd(" + number + ");");
-			}
-		}
+void repeat() throws IOException:
+{double iterations; Token t;}
+{
+    <REPEAT> iterations = nExpr() <LBRA>
+    {
+        repStack.push((int)iterations);
+        indent();
+        numIndent++;
+        pw.println("for(int i"+numIndent+" = 0;i"+numIndent+"<"+iterations+";i"+numIndent+"++){");
+    }
+    (statement())*
+    <RBRA>
+    {
+        numIndent--;
+        indent();
+        pw.println("}");
+        repStack.pop();   
+    }
+}
 		
-	void backward() throws IOException:
-	{Token t;}
-		{
-			<BACKWARD> nExpr() 
-			{
-				//put java output here
-			}
-		}
+void ifStatement() throws IOException:
+{Token t; boolean condition;}
+{
+    <IF> condition = bExpr() <LBRA>
+    {
+        indent();
+        numIndent++;
+        pw.println("if("+condition+"){");
+    }
+    (statement())*
+    <RBRA>
+    {
+        indent();
+        numIndent--;
+        pw.println("}");
+    }
+}
 		
-		void leftTurn() throws IOException:
-	{Token t;}
-		{
-			<LEFTTURN> nExpr()
-			{
-				//put java output here
-			}
-		}
-		
-		void rightTurn() throws IOException:
-	{double number;}
-		{
-			<RIGHTTURN> number = nExpr()
-			{
-				pw.println("logo.rt(" + number + ");");
-			}
-		}
-		
-		void repeat() throws IOException:
-	{Token t;}
-		{
-			<REPEAT> nExpr() <LBRA> (statement())* <RBRA>
-			{
-				//put java output here
-			}
-		}
-		
-		void ifStatement() throws IOException:
-	{Token t;}
-		{
-			<IF> bExpr() <LBRA> (statement())* <RBRA>
-			{
-				//put java output here
-			}
-		}
-		
-		void ifElseStatement() throws IOException:
-	{Token t;}
-		{
-			<IFELSE> bExpr() <LBRA> (statement())* <RBRA> <LBRA> (statement())* <RBRA>
-			{
-				//put java output here
-			}
-		}
+void ifElseStatement() throws IOException:
+{boolean condition;}
+{
+    <IFELSE> condition = bExpr() <LBRA>
+    {
+        indent();
+        numIndent++;
+        pw.println("if("+condition+"){");
+    }
+    (statement())*
+    <RBRA>
+    {
+        numIndent--;
+        pw.println("} else {");
+        numIndent++;
+    }
+    <LBRA>
+    (statement())*
+    <RBRA>
+    {
+
+        pw.println("}");
+        indent();
+        numIndent--;
+    }
+}
 		
 		
 double nExpr() throws IOException:
-	{double x; double y;}
-		{
-			x = nTerm()
-			(	<ADD> y = nTerm() 		{x+=y;}
-				| <SUB> y = nTerm() 	{x-=y;}
-				)*
-				{return x;}
-		}
+{double x; double y;}
+{
+    x = nTerm()
+    (
+        <ADD> y = nTerm()
+        {
+            x+=y;
+        }
+        | <SUB> y = nTerm()
+        {
+            x-=y;
+        }
+    )*
+    {return x;}
+}
 		
-	double nTerm() throws IOException:
-	{double x; double y;}
-		{
-			x = nFactor() 
-			(	<MUL> y = nFactor()		{x *= y;}
-				| <DIV> y = nFactor()	{x /= y;}
-			)*
-			{return x;}
-		}
-		
-	double nFactor() throws IOException:
-	{Token t; double value;}
-		{
-			<SUB> (<NUM> | <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>)
-			| value = number() {return value;}
-			| <REPCOUNT> | <PARAMETER> | <LPAR> nExpr() <RPAR>
-		}
+double nTerm() throws IOException:
+{double x; double y;}
+{
+    x = nFactor() 
+    (	<MUL> y = nFactor(){x *= y;}
+        | <DIV> y = nFactor(){x /= y;}
+    )*
+    {return x;}
+}
 
-	double number() throws IOException:
-	{Token t; double value;}
-		{
-			t = <NUM> {return Double.parseDouble(t.image);}
-		}
+double nFactor() throws IOException:
+{Token t; double value;}
+{
+    <SUB>
+    (
+        t = <NUM> {value = Double.parseDouble(t.image);}
+        | t = <REPCOUNT> {value = repStack.peek();}
+        | t = <PARAMETER>{value = (double)variables.get(t.image.substring(1));}
+        | <LPAR> value = nExpr() <RPAR>)
+    {
+        return -value;
+    }
+    | value = number() {return value;}
+    | <REPCOUNT> {return repStack.peek();}
+    | t = <PARAMETER>{return (double)variables.get(t.image.substring(1));}
+    | <LPAR> value = nExpr() <RPAR> {return value;}
+}
+
+double number() throws IOException:
+{Token t; double value;}
+{
+    t = <NUM> {return Double.parseDouble(t.image);}
+}
 		
-	void bExpr() throws IOException:
-	{Token t;}
-		{
-			bTerm() (<OR> bTerm())*
-		}
-	void bTerm() throws IOException:
-	{Token t;}
-		{
-			bFactor() (<AND> bFactor())*
-		}	
-	void bFactor() throws IOException:
-	{Token t;}
-		{
-			<TRUE>
-			| <FALSE>
-			| <NOT> <LPAR> bExpr() <RPAR>
-			| nExpr() (<EQ> | <NE> | <LT> | <GT> | <LE> | <GE>) nExpr()
-		}	
-	
+boolean bExpr() throws IOException:
+{Token t; boolean value; java.util.Stack<Boolean> values = new java.util.Stack<Boolean>();}
+{
+    value = bTerm()
+    {
+        values.push(value);
+    }
+    (
+        <OR> value = bTerm()
+        {
+            values.push(value);
+        }
+    )*
+    {
+        value = false;
+        for(boolean b : values)
+        {
+            value |= b;
+        }
+        return value;
+    }
+}
+boolean bTerm() throws IOException:
+{Token t; boolean value; java.util.Stack<Boolean> values = new java.util.Stack<Boolean>();}
+{
+    value = bFactor()
+    {
+        values.push(value);
+    }
+    (
+        <AND> value = bFactor()
+        {
+        values.push(value);
+        }
+    )*
+    {
+        value = true;
+        for(boolean b : values)
+        {
+            value &= b;
+        }
+        return value;
+    }
+}	
+boolean bFactor() throws IOException:
+{Token t; boolean value;double n1; double n2;String op;}
+{
+    t = <TRUE>
+    {
+        return true;
+    }
+    | <FALSE>
+    {
+        return false;
+    }
+    | <NOT> <LPAR> value = bExpr() <RPAR>
+    {
+        return !value;
+    }
+    | (
+        n1 = nExpr()
+        (
+            <EQ>{op = "eq";}
+            | <NE>{op = "ne";}
+            | <LT>{op = "lt";}
+            | <GT>{op = "gt";}
+            | <LE>{op = "le";}
+            | <GE>{op = "ge";}
+        )
+        n2 = nExpr()
+    )
+    {
+        switch(op)
+        {
+            case "eq":
+                return java.lang.Math.abs(n1-n2)<0.00001;
+            case "ne":
+                return java.lang.Math.abs(n1-n2)>0.00001;
+            case "lt":
+                return n1 < n2;
+            case "gt":
+                return n1 > n2;
+            case "le":
+                return n1 <= n2;
+            case "ge":
+                return n1 >= n2;
+            default:
+                return false;
+        }
+                return false;
+    }
+}	
