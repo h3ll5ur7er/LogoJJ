@@ -168,18 +168,17 @@ void start() throws IOException:
 void subroutine() throws IOException:
 {Token t;String methodName; ArrayList<String> paramNames = new ArrayList<String>();}
 {
-    <SUBROUTINE> t = <IDENTIFIER>{methodName = t.image;} (t = <PARAMETER>{paramNames.add(t.image.substring(1));})*
+    <SUBROUTINE> t = <IDENTIFIER>{methodName = t.image;} (t = <PARAMETER>{paramNames.add(t.image.substring(1).toLowerCase());})*
     {
         indent();
         numIndent++;
-        pw.println("private void "+methodName+"("+paramDef(paramNames).toLowerCase()+"){");
+        pw.println("private void "+methodName+"("+paramDef(paramNames)+"){");
         subroutineParameters.put(methodName, new ArrayList<String>());
         for(int index = 0; index < paramNames.size();index++)
         {
             variables.put(paramNames.get(index),0.0);
-            subroutineParameters.get(methodName).add(paramNames.get(index));
+            subroutineParameters.get(methodName).add(paramNames.get(index).toLowerCase());
             indent();
-            pw.println("double "+paramNames.get(index)+" = 0;");
         }
     }
     (statement())*
@@ -192,7 +191,7 @@ void subroutine() throws IOException:
 }
 
 void statement() throws IOException:
-{Token t; String id = ""; double number; ArrayList<Double> params = new ArrayList<Double>();}
+{Token t; String id = ""; String number; ArrayList<String> params = new ArrayList<String>();}
 {
     <CLEARSCREEN>
     {
@@ -247,23 +246,18 @@ void statement() throws IOException:
     | (repeat())
     | (ifStatement())
     | (ifElseStatement())
-    | (t = <IDENTIFIER>{id = t.image;} (number = nExpr(){params.add(number);})*
+    | (t = <IDENTIFIER>{id = t.image+"(";} (number = nExpr(){id+=number+",";})*
     {
-        for(int dex = 0; dex<params.size();dex++)
-        {
-            variables.put(subroutineParameters.get(id).get(dex), params.get(dex));
-        }
         indent();
-        pw.println(id+"("+paramImpl(params)+");");
+        pw.println(id.substring(0,id.length()-1)+");");
     })
 }
 	
 void repeat() throws IOException:
-{double iterations; Token t;}
+{String iterations; Token t;}
 {
     <REPEAT> iterations = nExpr() <LBRA>
     {
-        repStack.push((int)iterations);
         indent();
         numIndent++;
         pw.println("for(int i"+numIndent+" = 0;i"+numIndent+"<"+iterations+";i"+numIndent+"++){");
@@ -274,12 +268,11 @@ void repeat() throws IOException:
         numIndent--;
         indent();
         pw.println("}");
-        repStack.pop();   
     }
 }
 		
 void ifStatement() throws IOException:
-{Token t; boolean condition;}
+{Token t; String condition;}
 {
     <IF> condition = bExpr() <LBRA>
     {
@@ -297,7 +290,7 @@ void ifStatement() throws IOException:
 }
 		
 void ifElseStatement() throws IOException:
-{boolean condition;}
+{String condition;}
 {
     <IFELSE> condition = bExpr() <LBRA>
     {
@@ -309,6 +302,7 @@ void ifElseStatement() throws IOException:
     <RBRA>
     {
         numIndent--;
+        indent();
         pw.println("} else {");
         numIndent++;
     }
@@ -324,146 +318,118 @@ void ifElseStatement() throws IOException:
 }
 		
 		
-double nExpr() throws IOException:
-{double x; double y;}
+String nExpr() throws IOException:
+{String x; String y;}
 {
     x = nTerm()
     (
         <ADD> y = nTerm()
         {
-            x+=y;
+            x+="+"+y;
         }
         | <SUB> y = nTerm()
         {
-            x-=y;
+            x+="-"+y;
         }
     )*
     {return x;}
 }
 		
-double nTerm() throws IOException:
-{double x; double y;}
+String nTerm() throws IOException:
+{String x; String y;}
 {
     x = nFactor() 
-    (	<MUL> y = nFactor(){x *= y;}
-        | <DIV> y = nFactor(){x /= y;}
+    (	<MUL> y = nFactor(){x +="*"+ y;}
+        | <DIV> y = nFactor(){x +="/"+ y;}
     )*
     {return x;}
 }
 
-double nFactor() throws IOException:
-{Token t; double value;}
+String nFactor() throws IOException:
+{Token t; String value;}
 {
     <SUB>
     (
-        t = <NUM> {value = Double.parseDouble(t.image);}
-        | t = <REPCOUNT> {value = repStack.peek();}
-        | t = <PARAMETER>{value = (double)variables.get(t.image.substring(1));}
-        | <LPAR> value = nExpr() <RPAR>)
+        value = number()
+         | t = <REPCOUNT>  {value = "i"+numIndent;}
+         | t = <PARAMETER> {value = t.image.substring(1).toLowerCase();}
+         | <LPAR> value = nExpr() <RPAR>
+    )
     {
-        return -value;
-    }
-    | value = number() {return value;}
-    | <REPCOUNT> {return repStack.peek();}
-    | t = <PARAMETER>{return (double)variables.get(t.image.substring(1));}
-    | <LPAR> value = nExpr() <RPAR> {return value;}
+        return "-("+value+")";
+    }|
+    value = number()  {return value;}
+    | t = <REPCOUNT>  {return "i"+numIndent;}
+    | t = <PARAMETER> {return t.image.substring(1).toLowerCase();}
+    | <LPAR> value = nExpr() <RPAR>{return value;}
 }
 
-double number() throws IOException:
-{Token t; double value;}
+String number() throws IOException:
+{Token t; String value;}
 {
-    t = <NUM> {return Double.parseDouble(t.image);}
+    t = <NUM> {return t.image;}
 }
 		
-boolean bExpr() throws IOException:
-{Token t; boolean value; java.util.Stack<Boolean> values = new java.util.Stack<Boolean>();}
+String bExpr() throws IOException:
+{Token t; String value;String result = "";}
 {
     value = bTerm()
     {
-        values.push(value);
+        result += value;
     }
     (
         <OR> value = bTerm()
         {
-            values.push(value);
+            result += "||"+value;
         }
     )*
     {
-        value = false;
-        for(boolean b : values)
-        {
-            value |= b;
-        }
-        return value;
+        return result;
     }
 }
-boolean bTerm() throws IOException:
-{Token t; boolean value; java.util.Stack<Boolean> values = new java.util.Stack<Boolean>();}
+String bTerm() throws IOException:
+{Token t; String value;String result = "";}
 {
     value = bFactor()
     {
-        values.push(value);
+        result += value;
     }
     (
-        <AND> value = bFactor()
+        <OR> value = bFactor()
         {
-        values.push(value);
+            result += "&&"+value;
         }
     )*
     {
-        value = true;
-        for(boolean b : values)
-        {
-            value &= b;
-        }
-        return value;
+        return result;
     }
-}	
-boolean bFactor() throws IOException:
-{Token t; boolean value;double n1; double n2;String op;}
+}
+String bFactor() throws IOException:
+{Token t; String value;String result = "";}
 {
     t = <TRUE>
     {
-        return true;
+        return "true";
     }
     | <FALSE>
     {
-        return false;
+        return "false";
     }
     | <NOT> <LPAR> value = bExpr() <RPAR>
     {
-        return !value;
+        return "!("+value+")";
     }
     | (
-        n1 = nExpr()
+        value = nExpr(){result += value;}
         (
-            <EQ>{op = "eq";}
-            | <NE>{op = "ne";}
-            | <LT>{op = "lt";}
-            | <GT>{op = "gt";}
-            | <LE>{op = "le";}
-            | <GE>{op = "ge";}
+            <EQ>{result += "==";}
+            | <NE>{result +="!=";}
+            | <LT>{result += "<";}
+            | <GT>{result += ">";}
+            | <LE>{result += "<=";}
+            | <GE>{result += ">=";}
         )
-        n2 = nExpr()
+        value = nExpr(){result += value;}
     )
-    {
-        switch(op)
-        {
-            case "eq":
-                return java.lang.Math.abs(n1-n2)<0.00001;
-            case "ne":
-                return java.lang.Math.abs(n1-n2)>0.00001;
-            case "lt":
-                return n1 < n2;
-            case "gt":
-                return n1 > n2;
-            case "le":
-                return n1 <= n2;
-            case "ge":
-                return n1 >= n2;
-            default:
-                return false;
-        }
-                return false;
-    }
+    {return result;}
 }	
