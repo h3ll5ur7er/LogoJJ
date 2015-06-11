@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2015.5.11)  4 JUN 2015 12:00
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (MiKTeX 2.9) (preloaded format=pdflatex 2015.5.11)  11 JUN 2015 10:58
 entering extended mode
 **template.tex
 (D:\dev\java\src\LogoJJ\doc\template.tex
@@ -1002,13 +1002,13 @@ LaTeX Info: Redefining \nameref on input line 130.
 (D:\dev\java\src\LogoJJ\doc\vorspann/titel.tex)
 (D:\dev\java\src\LogoJJ\doc\vorspann/version.tex)
 (D:\dev\java\src\LogoJJ\doc\vorspann/titelseite_mit_bild.tex
-<bilder/BFH_Logo_B.png, id=31, 35.4123pt x 53.9616pt>
+<bilder/BFH_Logo_B.png, id=39, 35.4123pt x 53.9616pt>
 File: bilder/BFH_Logo_B.png Graphic file (type png)
 
 <use bilder/BFH_Logo_B.png>
 Package pdftex.def Info: bilder/BFH_Logo_B.png used on input line 16.
 (pdftex.def)             Requested size: 35.41219pt x 53.96146pt.
- <bilder/title.png, id=33, 301.125pt x 301.125pt>
+ <bilder/title.png, id=41, 301.125pt x 301.125pt>
 File: bilder/title.png Graphic file (type png)
 
 <use bilder/title.png>
@@ -1067,19 +1067,34 @@ Class scrreprt Warning: \float@addtolists detected!
 (scrreprt)              a package that still implements the
 (scrreprt)              deprecated \float@addtolist interface .
 
-) [1
+LaTeX Font Info:    Try loading font information for TS1+aess on input line 20.
+
+LaTeX Font Info:    No file TS1aess.fd. on input line 20.
+
+LaTeX Font Warning: Font shape `TS1/aess/m/n' undefined
+(Font)              using `TS1/cmr/m/n' instead
+(Font)              for symbol `textbullet' on input line 20.
+
+[1
 
 
 
 
-] (D:\dev\java\src\LogoJJ\doc\kapitel/implementation.tex [2
+] <bilder/grammar.png, id=72, 449.42906pt x 433.62pt>
+File: bilder/grammar.png Graphic file (type png)
 
-
-
-
-]
+<use bilder/grammar.png>
+Package pdftex.def Info: bilder/grammar.png used on input line 30.
+(pdftex.def)             Requested size: 449.42795pt x 433.61894pt.
+) [2 <D:/dev/java/src/LogoJJ/doc/bilder/grammar.png>]
+(D:\dev\java\src\LogoJJ\doc\kapitel/implementation.tex
 Kapitel 2.
-) [3] (D:\dev\java\src\LogoJJ\doc\kapitel/conclusion.tex [4
+) [3
+
+
+
+
+] (D:\dev\java\src\LogoJJ\doc\kapitel/conclusion.tex [4
 
 
 
@@ -1101,37 +1116,33 @@ Package atveryend Info: Empty hook `AfterLastShipout' on input line 245.
 (D:\dev\java\src\LogoJJ\doc\kapitel/conclusion.aux))
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 245.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 245.
+Package rerunfilecheck Info: File `template.out' has not changed.
+(rerunfilecheck)             Checksum: 07F7824FAEE31C9E2E651949883475C7;491.
 
 
-Package rerunfilecheck Warning: File `template.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `template.out':
-(rerunfilecheck)             Before: 0E87E2A463585C736F973F02CC19541D;367
-(rerunfilecheck)             After:  07F7824FAEE31C9E2E651949883475C7;491.
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 15487 strings out of 493921
- 243264 string characters out of 3144864
- 437722 words of memory out of 3000000
- 18378 multiletter control sequences out of 15000+200000
- 33424 words of font info for 76 fonts, out of 3000000 for 9000
+ 15504 strings out of 493921
+ 243520 string characters out of 3144864
+ 437806 words of memory out of 3000000
+ 18391 multiletter control sequences out of 15000+200000
+ 33759 words of font info for 77 fonts, out of 3000000 for 9000
  841 hyphenation exceptions out of 8191
  57i,11n,52p,1812b,397s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss10.pfb>
-<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss12.pfb><C
-:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss17.pfb><C:/
-Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss8.pfb><C:/Pro
-gram Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss9.pfb><C:/Progra
-m Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmssbx10.pfb><C:/Progra
-m Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy9.pfb>
-Output written on template.pdf (7 pages, 148299 bytes).
+ <D:\Users\david_000\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\jknappen\ec\dpi
+600\tcrm1000.pk><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/
+cm/cmss10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm
+/cmss12.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
+mss17.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cms
+s8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss9.
+pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmssbx10.
+pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy9.pfb
+>
+Output written on template.pdf (7 pages, 198335 bytes).
 PDF statistics:
- 111 PDF objects out of 1000 (max. 8388607)
+ 124 PDF objects out of 1000 (max. 8388607)
  17 named destinations out of 1000 (max. 500000)
- 67 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 88 words of extra memory for PDF output out of 10000 (max. 10000000)
 
