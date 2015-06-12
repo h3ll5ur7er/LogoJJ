@@ -1,0 +1,42 @@
+LOGO TRI
+	
+	TO TRI :N :S
+	
+		IFELSE :N == 0
+		[
+			TRIANGLE :S
+		]
+		[
+			TRI :N-1 :S/2
+			FD :S/2
+			TRI :N-1 :S/2
+			LT 120
+			FD :S/2
+			RT 120
+			TRI :N-1 :S/2
+			LT 60
+			BK :S/2
+			RT 60
+		]
+	
+	END
+	
+	
+	TO TRIANGLE :S
+		REPEAT 3
+		[
+			FD :S
+			LT 120
+		]
+	END
+	
+	PU
+	RT 90
+	FD 200
+	RT 90
+	FD 200
+	LT 180
+	PD
+	
+	TRI 8 400
+END
