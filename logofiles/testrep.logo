@@ -1,0 +1,12 @@
+
+LOGO REPEAT
+  REPEAT 4 [
+	FD 10
+	RT 45
+  ]
+  FD 100
+  REPEAT 4 [
+	FD 10
+	RT 45
+  ]
+END

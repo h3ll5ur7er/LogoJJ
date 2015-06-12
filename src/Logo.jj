@@ -76,6 +76,7 @@ PARSER_END(Logo)
 // skip separators
 SKIP : { <" " | "\t" | "\n" | "\r"> }
 // skip comment lines
+
 SKIP : { <"#"(~["\n"])*>}
 
 // Constants, pre-defined, operators etc.

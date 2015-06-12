@@ -7,6 +7,13 @@
 \contentsline {subsection}{\numberline {1.1.2}Deliverables}{1}{subsection.1.1.2}
 \contentsline {section}{\numberline {1.2}Grammar}{2}{section.1.2}
 \contentsline {chapter}{\numberline {2}Implementation}{3}{chapter.2}
-\contentsline {section}{\numberline {2.1}Tests}{3}{section.2.1}
-\contentsline {section}{\numberline {2.2}Limitations}{3}{section.2.2}
+\contentsline {section}{\numberline {2.1}Approach}{3}{section.2.1}
+\contentsline {section}{\numberline {2.2}Description of important elements}{3}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}Comment}{3}{subsection.2.2.1}
+\contentsline {subsection}{\numberline {2.2.2}Variables}{3}{subsection.2.2.2}
+\contentsline {subsection}{\numberline {2.2.3}Loops}{3}{subsection.2.2.3}
+\contentsline {subsection}{\numberline {2.2.4}REPCOUNT}{3}{subsection.2.2.4}
+\contentsline {subsection}{\numberline {2.2.5}Error Warnings}{4}{subsection.2.2.5}
+\contentsline {section}{\numberline {2.3}Tests}{4}{section.2.3}
+\contentsline {section}{\numberline {2.4}Limitations}{4}{section.2.4}
 \contentsline {chapter}{\numberline {3}Conclusion}{5}{chapter.3}

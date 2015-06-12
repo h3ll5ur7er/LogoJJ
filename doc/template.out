@@ -4,6 +4,13 @@
 \BOOKMARK [2][-]{subsection.1.1.2}{Deliverables}{section.1.1}% 4
 \BOOKMARK [1][-]{section.1.2}{Grammar}{chapter.1}% 5
 \BOOKMARK [0][-]{chapter.2}{Implementation}{}% 6
-\BOOKMARK [1][-]{section.2.1}{Tests}{chapter.2}% 7
-\BOOKMARK [1][-]{section.2.2}{Limitations}{chapter.2}% 8
-\BOOKMARK [0][-]{chapter.3}{Conclusion}{}% 9
+\BOOKMARK [1][-]{section.2.1}{Approach}{chapter.2}% 7
+\BOOKMARK [1][-]{section.2.2}{Description of important elements}{chapter.2}% 8
+\BOOKMARK [2][-]{subsection.2.2.1}{Comment}{section.2.2}% 9
+\BOOKMARK [2][-]{subsection.2.2.2}{Variables}{section.2.2}% 10
+\BOOKMARK [2][-]{subsection.2.2.3}{Loops}{section.2.2}% 11
+\BOOKMARK [2][-]{subsection.2.2.4}{REPCOUNT}{section.2.2}% 12
+\BOOKMARK [2][-]{subsection.2.2.5}{Error Warnings}{section.2.2}% 13
+\BOOKMARK [1][-]{section.2.3}{Tests}{chapter.2}% 14
+\BOOKMARK [1][-]{section.2.4}{Limitations}{chapter.2}% 15
+\BOOKMARK [0][-]{chapter.3}{Conclusion}{}% 16
