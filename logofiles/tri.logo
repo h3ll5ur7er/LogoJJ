@@ -9,13 +9,16 @@ LOGO TRI
 		[
 			TRI :N-1 :S/2
 			FD :S/2
+			WAIT 10
 			TRI :N-1 :S/2
 			LT 120
 			FD :S/2
+			WAIT 10
 			RT 120
 			TRI :N-1 :S/2
 			LT 60
 			BK :S/2
+			WAIT 10
 			RT 60
 		]
 	
@@ -26,6 +29,7 @@ LOGO TRI
 		REPEAT 3
 		[
 			FD :S
+			WAIT 10
 			LT 120
 		]
 	END
@@ -38,5 +42,5 @@ LOGO TRI
 	LT 180
 	PD
 	
-	TRI 8 400
+	TRI 5 400
 END
